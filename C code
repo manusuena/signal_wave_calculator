@@ -1,0 +1,209 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include "stdio.h"
+#include "stdlib.h"
+typedef struct {
+float w;
+float f;
+float c;
+int number;
+float lower;
+float upper;
+float step;
+int date;
+}Variables;
+Variables *make_var(int date)
+{
+Variables*var;
+if ((var = (Variables *)malloc(sizeof(Variables))) == NULL)
+{
+fprintf(stderr, "failed to allocated memory \n");
+exit(0);
+}
+var->w = 0;
+var->f = 0;
+var->c = 0;
+var->number = 0;
+var->lower = 0;
+var->upper = 0;
+var->step = 0;
+var->date =NULL;
+return var;
+};
+void set_speed(Variables*var)
+{
+float c;
+ printf("Enter the value of speed of wave in m/s\n");
+ scanf("%f", &c);
+printf("You entered the value %.2f\n", c);
+var->c = c;
+}
+void set_wavelenght(Variables*var)
+{
+float w;
+printf("Enter the value of wavelength in m\n");
+scanf("%f", &w);
+printf("You entered the value %.2f\n", w);
+var->w = w;
+}
+void set_frequency(Variables*var)
+{
+float f;
+printf("Enter the value of frequency in Hz\n");
+scanf("%f", &f);
+printf("You entered the value %.2f\n", f);
+var->f = f;
+}
+int set_number(Variables*var) 
+{
+int number;
+printf("Enter number\n");
+scanf_s("%d", &number);
+printf("You entered the number %d\n", number);
+var->number = number;
+return number;
+}
+void set_tabel_values(Variables*var)
+{
+float lower, upper, step;
+printf("Enter the lowest value of frequency in Hz\n");
+scanf("%f", &lower);
+printf("You entered the value %.2f\n", lower);
+var->lower = lower;
+printf("Entre the highest value of frequency in Hz\n");
+scanf("%f", &upper);
+printf("You entered the value %.2f\n", upper);
+var->upper = upper;
+printf("Enter the increment of frequency\n");
+scanf("%f", &step);
+printf("You entered the value %.2f\n", step);
+var->step = step;
+}
+void header(Variables*var) // This function explains the program to the user
+{
+printf("This program is designed to calculate different variables based on \n");
+printf("which of option you choose (Numbered from 1 to 4)\n");
+printf("Press 1 if you want to calculate wavelength (w)\n");
+printf("Press 2 if you want to calculate frequency (f)\n");
+printf("Press 3 if you want to calculate speed of wave (c)\n");
+printf("Press 4 if you want a table of the values when c is constant\n");
+}
+void calc_wavelength(Variables*var, int res) //Here the wavelength is calculated
+{ 
+float w;
+set_speed(var);
+set_frequency(var);
+w = var->c / var->f;
+var->w = w;
+}
+void calc_frequency(Variables*var,int res) //Here the frequency is calculated
+{
+float f;
+set_speed(var);
+set_wavelenght(var);
+f = var->c / var->w;
+var->f = f;
+}
+void calc_speed(Variables*var,int res) // Here speed of the wave is calculated
+{
+float c;
+set_wavelenght(var);
+set_frequency(var);
+c = var->w * var->f;
+var->c = c;
+}
+void table(Variables*var,int res) 
+{
+float f,w;
+set_speed(var);
+set_tabel_values(var);
+if(var->upper>var->lower && var->upper>var->step) {
+printf("w\tf\n");
+printf("---------------\n");
+f = var->lower;
+while (f <= var->upper) 
+{
+w = var->c / f;
+printf("%.2fm\t%.2fHz\n", w, f);
+f = f + var->step;
+}
+}
+else { printf("Error the increment/lowest value can't exceed the highest 
+value\n"); }
+}
+float get_result(Variables *var,int res)
+{
+switch (res)
+{
+case 1:
+ return var->w;
+ break;
+case 2:
+return var->c;
+break;
+case 3:
+return var->f;
+break;
+default: printf("Error");
+break;
+}
+}
+void free_memory(Variables *var)
+{
+free(var);
+}
+int write_data(char file_name[], Variables *var) 
+{
+FILE *fp;
+fp = fopen(file_name, "w+");
+if (fp == NULL) {
+fprintf(stderr, "ERROR: Can't open input file\n");
+return 1;
+}
+fprintf(fp, "Data:\n");
+fprintf(fp, "Speed of Sound %0.2f\nFrequency %0.2f\nWavelength %0.2f\n",var->c, 
+var->f, var->w);
+fprintf(fp, "date is %d\n",var->date);
+fclose(fp);
+return 0;
+}
+int main()
+{
+Variables *var;
+var = make_var(27122017);
+header(var); // this executes the header 
+int res = set_number(var); //Here the set_number function is executed 
+switch (res) //The computer uses the number entered by the user to determine which 
+operation to execute 
+{
+case 1://In case 1 the user is asked for c and f 
+calc_wavelength(var,res); // Here the wavelength is calculated
+get_result(var, res); // This function gets the result from the 
+calc_wavelength function
+printf("The value of the wavelength is %.2f m\n", var->w);
+break;
+case 2: // In this case the user is asked for w and c to calculet f
+calc_frequency(var,res); //Here the frequency is calculated
+get_result(var, res); // This function gets the result from the 
+calc_ferquency function 
+printf("The value of frequency is %.2f Hz\n", var->f);
+break;
+case 3: //In case 3 the user is asked for w and f
+calc_speed(var,res); //Here the speed of the wave is calculated
+get_result(var, res);
+printf("The value of speed of wave is %.2f m/s\n", var->c);
+break;
+case 4: //In case 4 the user is asked for c ,lower ,upper and step
+table(var,res); //Here the function table is executed
+break;
+default: //This is executed incase a number higher then 4 is entered 
+printf("This program only accepts options from 1 to 4. Inserting any other 
+number will result in ERROR\n");
+break;
+}
+if (write_data("data.txt", var) == 1) 
+{
+fprintf(stderr, "Failed to open file!\n"); 
+}
+free_memory(var); // Here the memory is freed by deleting data stored 
+return 0;
+}
